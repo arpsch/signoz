@@ -10,10 +10,12 @@ import (
 
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/arpsch/signoz/optel"
+	"google.golang.org/grpc/credentials"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -21,28 +23,22 @@ import (
 
 var (
 	serviceName  = os.Getenv("SERVICE_NAME")
-	signozToken  = os.Getenv("SIGNOZ_ACCESS_TOKEN")
 	collectorURL = os.Getenv("OTEL_EXPORTER_OTLP_ENDPOINT")
 	insecure     = os.Getenv("INSECURE_MODE")
 )
 
 func initTracer() func(context.Context) error {
 
-	// headers := map[string]string{
-	// 	"signoz-access-token": signozToken,
-	// }
-
-	//	secureOption := otlptracehttp.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-	//	if len(insecure) > 0 {
-	secureOption := otlptracehttp.WithInsecure()
-	//	}
+	secureOption := otlptracegrpc.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+	if len(insecure) > 0 {
+		secureOption = otlptracegrpc.WithInsecure()
+	}
 
 	exporter, err := otlptrace.New(
 		context.Background(),
-		otlptracehttp.NewClient(
+		otlptracegrpc.NewClient(
 			secureOption,
-			otlptracehttp.WithEndpoint(collectorURL),
-			//otlptracegrpc.WithHeaders(headers),
+			otlptracegrpc.WithEndpoint(collectorURL),
 		),
 	)
 
@@ -70,7 +66,6 @@ func initTracer() func(context.Context) error {
 	)
 	return exporter.Shutdown
 }
-
 func main() {
 
 	cleanup := initTracer()

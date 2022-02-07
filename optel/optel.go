@@ -25,7 +25,7 @@ type NewOptelMiddleware struct {
 }
 
 func (mw *NewOptelMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.HandlerFunc {
-	fmt.Println("opent-telementry mw.....")
+
 	if mw.TracerProvider == nil {
 		mw.TracerProvider = otel.GetTracerProvider()
 	}
@@ -40,7 +40,6 @@ func (mw *NewOptelMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.Hand
 	return func(writer rest.ResponseWriter, request *rest.Request) {
 		//	c.Set(tracerKey, tracer)
 
-		fmt.Println("opent-telementry closure  mw.....")
 		savedCtx := request.Context()
 		defer func() {
 			request.Request = request.WithContext(savedCtx)
@@ -65,7 +64,6 @@ func (mw *NewOptelMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.Hand
 		// serve the request to the next middleware
 		handler(writer, request)
 
-		fmt.Println("opent-telementry closure  span Name ..... ", spanName)
 		// for test
 		status := 200
 		attrs := semconv.HTTPAttributesFromHTTPStatusCode(status)
