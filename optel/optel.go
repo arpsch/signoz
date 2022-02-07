@@ -16,7 +16,7 @@ const (
 	tracerName = "TestTracer"
 )
 
-type NewRelicMiddleware struct {
+type NewOptelMiddleware struct {
 	Service        string
 	Name           string
 	Verbose        bool
@@ -24,7 +24,7 @@ type NewRelicMiddleware struct {
 	Propagators    propagation.TextMapPropagator
 }
 
-func (mw *NewRelicMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.HandlerFunc {
+func (mw *NewOptelMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.HandlerFunc {
 	fmt.Println("opent-telementry mw.....")
 	if mw.TracerProvider == nil {
 		mw.TracerProvider = otel.GetTracerProvider()
@@ -66,6 +66,7 @@ func (mw *NewRelicMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.Hand
 		handler(writer, request)
 
 		fmt.Println("opent-telementry closure  span Name ..... ", spanName)
+		// for test
 		status := 200
 		attrs := semconv.HTTPAttributesFromHTTPStatusCode(status)
 		spanStatus, spanMessage := semconv.SpanStatusFromHTTPStatusCode(status)
@@ -75,9 +76,5 @@ func (mw *NewRelicMiddleware) MiddlewareFunc(handler rest.HandlerFunc) rest.Hand
 			if len(c.Errors) > 0 {
 				span.SetAttributes(attribute.String("gin.errors", c.Errors.String()))
 			}*/
-
-		// the timer middleware keeps track of the time
-		//startTime := request.Env["START_TIME"].(*time.Time)
-		//mw.agent.HTTPTimer.UpdateSince(*startTime)
 	}
 }

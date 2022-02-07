@@ -1,13 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
-	"context"
-
 
 	"github.com/ant0ine/go-json-rest/rest"
 	"github.com/arpsch/signoz/optel"
@@ -15,11 +14,10 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
-	
+
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 )
-
 
 var (
 	serviceName  = os.Getenv("SERVICE_NAME")
@@ -34,10 +32,10 @@ func initTracer() func(context.Context) error {
 	// 	"signoz-access-token": signozToken,
 	// }
 
-//	secureOption := otlptracehttp.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
-//	if len(insecure) > 0 {
+	//	secureOption := otlptracehttp.WithTLSCredentials(credentials.NewClientTLSFromCert(nil, ""))
+	//	if len(insecure) > 0 {
 	secureOption := otlptracehttp.WithInsecure()
-//	}
+	//	}
 
 	exporter, err := otlptrace.New(
 		context.Background(),
@@ -73,7 +71,6 @@ func initTracer() func(context.Context) error {
 	return exporter.Shutdown
 }
 
-
 func main() {
 
 	cleanup := initTracer()
@@ -81,7 +78,7 @@ func main() {
 
 	api := rest.NewApi()
 	api.Use(rest.DefaultDevStack...)
-	api.Use(&optel.NewRelicMiddleware{
+	api.Use(&optel.NewOptelMiddleware{
 		Service: "test-opentelemetry",
 	})
 	router, err := rest.MakeRouter(
